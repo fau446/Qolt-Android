@@ -5,27 +5,26 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ca.qolt.ui.theme.QoltTheme
-import ca.qolt.ui.statistics.StatisticsColors
 
-/**
- * Renders a widget based on its type. This is the main entry point for widget rendering.
- * The UI is intentionally simple and easy to modify.
- */
 @Composable
 fun WidgetRenderer(
     widget: Widget,
@@ -33,7 +32,6 @@ fun WidgetRenderer(
 ) {
     when (val type = widget.type) {
         is WidgetType.FocusTime -> {
-            // FocusTime has its own Card with orange background
             Box(modifier = modifier.padding(8.dp)) {
                 FocusTimeWidget(type)
             }
@@ -41,11 +39,11 @@ fun WidgetRenderer(
         is WidgetType.Streak -> {
             Card(
                 modifier = modifier
-                    .width(160.dp) // Smaller, almost square tile (not full width)
+                    .width(160.dp)
                     .padding(8.dp),
-                shape = RoundedCornerShape(20.dp), // Large rounded corners
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = StatisticsColors.CardBackground // Very dark grey/almost black
+                    containerColor = StatisticsColors.CardBackground
                 )
             ) {
                 StreakWidget(type)
@@ -54,11 +52,11 @@ fun WidgetRenderer(
         is WidgetType.WeeklyGoal -> {
             Card(
                 modifier = modifier
-                    .width(160.dp) // Smaller, more square (not full width)
+                    .width(160.dp)
                     .padding(8.dp),
-                shape = RoundedCornerShape(20.dp), // Large rounded corners
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = StatisticsColors.CardBackground // Dark grey/black background
+                    containerColor = StatisticsColors.CardBackground
                 )
             ) {
                 WeeklyGoalWidget(type)
@@ -69,16 +67,15 @@ fun WidgetRenderer(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                shape = RoundedCornerShape(20.dp), // Large corner radius
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = StatisticsColors.CardBackground // Dark charcoal/black
+                    containerColor = StatisticsColors.CardBackground
                 )
             ) {
                 AppUsageWidget(type)
             }
         }
         is WidgetType.TotalHours -> {
-            // TotalHours has its own outer/inner card structure
             Box(modifier = modifier.padding(8.dp)) {
                 TotalHoursWidget(type)
             }
@@ -140,65 +137,71 @@ fun WidgetRenderer(
 
 @Composable
 private fun FocusTimeWidget(type: WidgetType.FocusTime) {
-    // Format number to 1 decimal place
     val formattedHours = String.format("%.1f", type.totalHours)
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp), // 20-24px border radius for pill-card
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
-            containerColor = StatisticsColors.Orange // Solid orange background
+            containerColor = Color.Transparent
         )
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(22.dp), // 20-24px generous padding on all sides
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        listOf(
+                            Color(0xFFFF8A4A),
+                            StatisticsColors.Orange
+                        )
+                    ),
+                    shape = RoundedCornerShape(22.dp)
+                )
+                .padding(22.dp)
         ) {
-            // Label (top-left): "Total Focus Time"
-            Text(
-                text = "Total Focus Time",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                color = Color.White
-            )
-            
-            // Main value row: big number + "hrs" on same line, left-aligned
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = formattedHours,
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold
+                    text = "Total Focus Time",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal
                     ),
                     color = Color.White
                 )
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = formattedHours,
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Color.White
+                    )
+                    Text(
+                        text = "hrs",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 16.sp
+                        ),
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
                 Text(
-                    text = "hrs",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 16.sp
+                    text = type.period,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal
                     ),
                     color = Color.White,
-                    modifier = Modifier.padding(bottom = 4.dp) // Baseline alignment
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
-            
-            // Period label (bottom-left): "this week" or "today"
-            Text(
-                text = type.period,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                color = Color.White,
-                modifier = Modifier.padding(top = 4.dp) // Space under the big number
-            )
         }
     }
 }
@@ -208,95 +211,85 @@ private fun StreakWidget(type: WidgetType.Streak) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp), // Reduced padding for compact card
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Tighter vertical spacing
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Dark circular base ring with four separate orange segments
         Box(
-            modifier = Modifier.size(80.dp), // Smaller circle
+            modifier = Modifier.size(80.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Dark base ring (full circle)
             CircularProgressIndicator(
-                progress = { 1f }, // Full circle for dark base
+                progress = { 1f },
                 modifier = Modifier.size(80.dp),
-                color = Color(0xFF2A2A2A), // Dark grey base ring
+                color = Color(0xFF2A2A2A),
                 strokeWidth = 8.dp
             )
-            
-            // Four separate orange segments using Canvas
             androidx.compose.foundation.Canvas(
                 modifier = Modifier.size(80.dp)
             ) {
                 val strokeWidth = 8.dp.toPx()
                 val radius = size.minDimension / 2 - strokeWidth / 2
                 val center = Offset(size.width / 2, size.height / 2)
-                
                 val segmentCount = 4
-                val segmentAngle = 60f // Each segment is 60 degrees
-                val gapAngle = 30f // Gap between segments is 30 degrees
-                val totalAngle = segmentAngle + gapAngle // 90 degrees per segment+gap
-                
+                val segmentAngle = 60f
+                val gapAngle = 30f
+                val totalAngle = segmentAngle + gapAngle
                 val progress = type.currentStreak.toFloat() / type.targetStreak
                 val filledSegments = (progress * segmentCount).toInt()
                 val partialSegmentProgress = (progress * segmentCount) - filledSegments
-                
                 for (i in 0 until segmentCount) {
-                    val startAngle = -90f + (i * totalAngle) // Start from top
+                    val startAngle = -90f + (i * totalAngle)
                     if (i < filledSegments) {
-                        // Fully filled segment
                         drawArc(
-                            color = StatisticsColors.Orange, // Orange
+                            color = StatisticsColors.Orange,
                             startAngle = startAngle,
                             sweepAngle = segmentAngle,
                             useCenter = false,
                             topLeft = Offset(center.x - radius, center.y - radius),
                             size = Size(radius * 2, radius * 2),
-                            style = Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            style = Stroke(
+                                width = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
                         )
                     } else if (i == filledSegments && partialSegmentProgress > 0f) {
-                        // Partially filled segment
                         drawArc(
-                            color = StatisticsColors.Orange, // Orange
+                            color = StatisticsColors.Orange,
                             startAngle = startAngle,
                             sweepAngle = segmentAngle * partialSegmentProgress,
                             useCenter = false,
                             topLeft = Offset(center.x - radius, center.y - radius),
                             size = Size(radius * 2, radius * 2),
-                            style = Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            style = Stroke(
+                                width = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
                         )
                     }
                 }
             }
-            
-            // Simple orange outline flame (not filled)
-            // Using a simple representation - can be replaced with proper outline icon
             Text(
                 text = "🔥",
                 fontSize = 32.sp,
-                color = StatisticsColors.Orange // Solid orange color
+                color = StatisticsColors.Orange
             )
         }
-        
-        // Number: 12 (bold, white, centered)
         Text(
             text = "${type.currentStreak}",
             style = MaterialTheme.typography.displayMedium.copy(
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
             ),
-            color = Color.White // White
+            color = Color.White
         )
-        
-        // Label: "Day Streak" (light grey, centered, slightly smaller)
         Text(
             text = "Day Streak",
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp, // Slightly smaller
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Normal
             ),
-            color = Color(0xFFB0B0B0) // Light grey
+            color = Color(0xFFB0B0B0)
         )
     }
 }
@@ -306,80 +299,73 @@ private fun WeeklyGoalWidget(type: WidgetType.WeeklyGoal) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp), // Reduced padding for smaller square card
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Tighter spacing
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Dark circular base ring with four separate blue segments
         Box(
-            modifier = Modifier.size(80.dp), // Smaller circle
+            modifier = Modifier.size(80.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Dark base ring (full circle)
             CircularProgressIndicator(
-                progress = { 1f }, // Full circle for dark base
+                progress = { 1f },
                 modifier = Modifier.size(80.dp),
-                color = Color(0xFF2A2A2A), // Dark grey base ring
+                color = Color(0xFF2A2A2A),
                 strokeWidth = 8.dp
             )
-            
-            // Four separate blue segments using Canvas
             androidx.compose.foundation.Canvas(
                 modifier = Modifier.size(80.dp)
             ) {
                 val strokeWidth = 8.dp.toPx()
                 val radius = size.minDimension / 2 - strokeWidth / 2
                 val center = Offset(size.width / 2, size.height / 2)
-                
                 val segmentCount = 4
-                val segmentAngle = 60f // Each segment is 60 degrees
-                val gapAngle = 30f // Gap between segments is 30 degrees
-                val totalAngle = segmentAngle + gapAngle // 90 degrees per segment+gap
-                
+                val segmentAngle = 60f
+                val gapAngle = 30f
+                val totalAngle = segmentAngle + gapAngle
                 val percentage = type.percentage / 100f
                 val filledSegments = (percentage * segmentCount).toInt()
                 val partialSegmentProgress = (percentage * segmentCount) - filledSegments
-                
                 for (i in 0 until segmentCount) {
-                    val startAngle = -90f + (i * totalAngle) // Start from top
+                    val startAngle = -90f + (i * totalAngle)
                     if (i < filledSegments) {
-                        // Fully filled segment
                         drawArc(
-                            color = Color(0xFF2196F3), // Blue
+                            color = Color(0xFF2196F3),
                             startAngle = startAngle,
                             sweepAngle = segmentAngle,
                             useCenter = false,
                             topLeft = Offset(center.x - radius, center.y - radius),
                             size = Size(radius * 2, radius * 2),
-                            style = Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            style = Stroke(
+                                width = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
                         )
                     } else if (i == filledSegments && partialSegmentProgress > 0f) {
-                        // Partially filled segment
                         drawArc(
-                            color = Color(0xFF2196F3), // Blue
+                            color = Color(0xFF2196F3),
                             startAngle = startAngle,
                             sweepAngle = segmentAngle * partialSegmentProgress,
                             useCenter = false,
                             topLeft = Offset(center.x - radius, center.y - radius),
                             size = Size(radius * 2, radius * 2),
-                            style = Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            style = Stroke(
+                                width = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
                         )
                     }
                 }
             }
-            
-            // Concentric circles icon (simple blue circles on dark background)
             Box(
                 modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Outer circle
                 Box(
                     modifier = Modifier
                         .size(30.dp)
                         .background(Color(0xFF2196F3).copy(alpha = 0.3f), CircleShape)
                 )
-                // Inner circle
                 Box(
                     modifier = Modifier
                         .size(18.dp)
@@ -387,8 +373,6 @@ private fun WeeklyGoalWidget(type: WidgetType.WeeklyGoal) {
                 )
             }
         }
-        
-        // Main value: 85 (bold, white, centered)
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
@@ -401,7 +385,6 @@ private fun WeeklyGoalWidget(type: WidgetType.WeeklyGoal) {
                 ),
                 color = Color.White
             )
-            // % symbol as separate small white label, positioned right below 85
             Text(
                 text = "%",
                 style = MaterialTheme.typography.bodySmall.copy(
@@ -409,18 +392,16 @@ private fun WeeklyGoalWidget(type: WidgetType.WeeklyGoal) {
                     fontWeight = FontWeight.Normal
                 ),
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 4.dp) // Aligned to baseline
+                modifier = Modifier.padding(bottom = 4.dp)
             )
         }
-        
-        // Label: "Weekly Goal" (light grey, directly under 85)
         Text(
             text = "Weekly Goal",
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal
             ),
-            color = Color(0xFFB0B0B0) // Light grey
+            color = Color(0xFFB0B0B0)
         )
     }
 }
@@ -430,10 +411,9 @@ private fun AppUsageWidget(type: WidgetType.AppUsage) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp), // Generous padding
-        verticalArrangement = Arrangement.spacedBy(16.dp) // More vertical spacing between rows
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // No title - removed as per design
         type.apps.forEach { app ->
             AppUsageItemRow(app)
         }
@@ -455,7 +435,6 @@ private fun AppUsageItemRow(app: AppUsageItem) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Icon with colored background
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -463,12 +442,11 @@ private fun AppUsageItemRow(app: AppUsageItem) {
                         .background(Color(app.color)),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Use appropriate icons - for now using emoji placeholders, can be replaced with proper icons
                     val iconText = when (app.name.lowercase()) {
-                        "instagram" -> "📱" // Phone-like icon
-                        "email" -> "✉️" // Envelope
-                        "messages" -> "💬" // Chat bubble
-                        "youtube" -> "▶️" // Play button
+                        "instagram" -> "📱"
+                        "email" -> "✉️"
+                        "messages" -> "💬"
+                        "youtube" -> "▶️"
                         else -> app.name.take(1).uppercase()
                     }
                     Text(
@@ -483,8 +461,6 @@ private fun AppUsageItemRow(app: AppUsageItem) {
                     color = Color.White
                 )
             }
-            
-            // Time display - Instagram has number on one line, "h" below
             if (app.name.lowercase() == "instagram") {
                 Column(
                     horizontalAlignment = Alignment.End
@@ -510,13 +486,11 @@ private fun AppUsageItemRow(app: AppUsageItem) {
                 )
             }
         }
-        
-        // Thick horizontal progress bar
         LinearProgressIndicator(
             progress = { app.percentage / 100f },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(8.dp) // 2-3x thicker (was 4dp)
+                .height(8.dp)
                 .clip(RoundedCornerShape(4.dp)),
             color = Color(app.color),
             trackColor = Color.White.copy(alpha = 0.2f)
@@ -526,49 +500,42 @@ private fun AppUsageItemRow(app: AppUsageItem) {
 
 @Composable
 private fun TotalHoursWidget(type: WidgetType.TotalHours) {
-    // Format number without thousands separator
     val formattedHours = String.format("%.2f", type.hours).replace(",", "")
-    
-    // Outer light grey container
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        shape = RoundedCornerShape(22.dp), // Slightly larger radius than inner
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF4F4F4) // Light grey
+            containerColor = Color(0xFFF4F4F4)
         )
     ) {
-        // Inner orange card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp) // Padding so orange card sits inset
+                .padding(4.dp)
                 .background(
                     StatisticsColors.Orange,
-                    RoundedCornerShape(20.dp) // Slightly smaller radius
+                    RoundedCornerShape(20.dp)
                 )
-                .padding(24.dp), // Generous padding inside orange card
+                .padding(24.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Label: "Total Hours" (white, smaller, above number)
                 Text(
-                    text = "Total Hours", // Capitalize "Hours"
+                    text = "Total Hours",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal
                     ),
                     color = Color.White
                 )
-                
-                // Main value: 2228.28 (white, larger, bold)
                 Text(
                     text = formattedHours,
                     style = MaterialTheme.typography.displayLarge.copy(
-                        fontSize = 56.sp, // Increased font size for dominance
+                        fontSize = 56.sp,
                         fontWeight = FontWeight.Bold
                     ),
                     color = Color.White
@@ -612,7 +579,6 @@ private fun CircularProgressWidget(type: WidgetType.CircularProgress) {
                 )
             }
         }
-        
         Text(
             text = type.title,
             style = MaterialTheme.typography.bodyMedium,
@@ -634,13 +600,11 @@ private fun BarChartWidget(type: WidgetType.BarChart) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
-        
         Text(
             text = type.period,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -658,7 +622,7 @@ private fun BarChartWidget(type: WidgetType.BarChart) {
                     Box(
                         modifier = Modifier
                             .width(32.dp)
-                            .height((height * 0.9).dp)
+                            .height((height * 0.9f).dp)
                             .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                             .background(StatisticsColors.Orange)
                     )
@@ -677,11 +641,9 @@ private fun BarChartWidget(type: WidgetType.BarChart) {
 
 @Composable
 private fun StatsTodayWidget(type: WidgetType.StatsToday) {
-    // First StatsToday widget gets orange background, others get dark grey
     val isFirst = type.value == 2.28f
     val backgroundColor = if (isFirst) StatisticsColors.Orange else StatisticsColors.CardBackground
     val textColor = Color.White
-    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -703,7 +665,6 @@ private fun StatsTodayWidget(type: WidgetType.StatsToday) {
                 style = MaterialTheme.typography.labelMedium,
                 color = if (isFirst) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.7f)
             )
-            
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -725,8 +686,6 @@ private fun StatsTodayWidget(type: WidgetType.StatsToday) {
                     )
                 }
             }
-            
-            // Simple wavy line graph for first widget
             if (isFirst) {
                 Box(
                     modifier = Modifier
@@ -734,7 +693,6 @@ private fun StatsTodayWidget(type: WidgetType.StatsToday) {
                         .height(40.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    // Simple placeholder for graph - can be enhanced later
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -744,7 +702,10 @@ private fun StatsTodayWidget(type: WidgetType.StatsToday) {
                                 modifier = Modifier
                                     .width(4.dp)
                                     .height((20 + index * 3).dp)
-                                    .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(2.dp))
+                                    .background(
+                                        Color.White.copy(alpha = 0.7f),
+                                        RoundedCornerShape(2.dp)
+                                    )
                             )
                         }
                     }
@@ -788,15 +749,12 @@ private fun FocusSessionsWidget(type: WidgetType.FocusSessions) {
                         color = Color.White.copy(alpha = 0.7f)
                     )
                 }
-                
                 Text(
                     text = "${type.currentProgress}/${type.targetProgress}",
                     style = MaterialTheme.typography.titleMedium,
                     color = StatisticsColors.Orange
                 )
             }
-            
-            // Day indicators
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -812,12 +770,15 @@ private fun FocusSessionsWidget(type: WidgetType.FocusSessions) {
                             contentAlignment = Alignment.Center
                         ) {
                             if (isCompleted) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(StatisticsColors.Orange, RoundedCornerShape(16.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            StatisticsColors.Orange,
+                                            RoundedCornerShape(16.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text(
                                         text = "✓",
                                         color = Color.White,
@@ -832,7 +793,11 @@ private fun FocusSessionsWidget(type: WidgetType.FocusSessions) {
                                             Color.Transparent,
                                             RoundedCornerShape(16.dp)
                                         )
-                                        .border(2.dp, StatisticsColors.Orange, RoundedCornerShape(16.dp))
+                                        .border(
+                                            2.dp,
+                                            StatisticsColors.Orange,
+                                            RoundedCornerShape(16.dp)
+                                        )
                                 )
                             }
                         }
@@ -848,4 +813,3 @@ private fun FocusSessionsWidget(type: WidgetType.FocusSessions) {
         }
     }
 }
-
