@@ -70,14 +70,16 @@ import ca.qolt.util.PreferencesManager
 fun Profile(modifier: Modifier = Modifier, viewModel: ProfileViewModel) {
     ProfileScreen(
         modifier,
-        onLogout = viewModel::onLogout
+        onLogout = viewModel::onLogout,
+        onHelpCenter = viewModel::onHelpCenterClick
     )
 }
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onHelpCenter: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val orange = Color(0xFFFF6A1A)
@@ -101,17 +103,12 @@ fun ProfileScreen(
     }
 
     var showSuccess by remember { mutableStateOf(false) }
-    var showHelpCenter by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     var isSearching by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    if (showHelpCenter) {
-        HelpCenterScreen(onBack = { showHelpCenter = false  })
-        return
-    }
 
     val blurRadius = if (showEditProfile || showLogoutDialog || showLanguageDialog) 20.dp else 0.dp
 
@@ -439,10 +436,7 @@ fun ProfileScreen(
                                 )
                             },
                             label = "Help Center",
-                            onClick = {
-                                showHelpCenter = true
-                                showSuccess = false
-                            }
+                            onClick = onHelpCenter
                         )
 
                         "Log Out" -> Row(

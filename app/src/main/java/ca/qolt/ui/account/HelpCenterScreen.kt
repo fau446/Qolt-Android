@@ -37,7 +37,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun HelpCenterScreen(onBack: () -> Unit = {}) {
+fun HelpCenter(modifier: Modifier = Modifier, viewModel: HelpCenterViewModel) {
+    HelpCenterScreen(
+        modifier,
+        onBack = viewModel::onBack
+    )
+}
+
+@Composable
+fun HelpCenterScreen(
+    modifier: Modifier,
+    onBack: () -> Unit = {}
+) {
     val orange = Color(0xFFFF6A1A)
 
     var searchQuery by remember { mutableStateOf("") }
