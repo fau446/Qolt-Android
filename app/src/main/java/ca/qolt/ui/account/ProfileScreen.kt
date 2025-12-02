@@ -64,12 +64,26 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextAlign
-import ca.qolt.util.PreferencesManager
+import androidx.compose.runtime.collectAsState
+
 
 @Composable
-fun Profile(modifier: Modifier = Modifier, viewModel: ProfileViewModel) {
+fun Profile(
+    modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
     ProfileScreen(
-        modifier,
+        modifier = modifier,
+        state = uiState,
+        onBlockTimerChange = viewModel::onBlockTimerChanged,
+        onEmergencyUnlockChange = viewModel::onEmergencyUnlockChanged,
+        onDarkModeChange = viewModel::onDarkModeChanged,
+        onLiveActivityChange = viewModel::onLiveActivityChanged,
+        onNotificationsChange = viewModel::onNotificationsChanged,
+        onLanguageChange = viewModel::onLanguageSelected,
+        onProfileSave = viewModel::onProfileSaved,
         onLogout = viewModel::onLogout,
         onHelpCenter = viewModel::onHelpCenterClick
     )
@@ -77,30 +91,23 @@ fun Profile(modifier: Modifier = Modifier, viewModel: ProfileViewModel) {
 
 @Composable
 fun ProfileScreen(
-    modifier: Modifier,
-    onLogout: () -> Unit = {},
-    onHelpCenter: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    state: ProfileUiState,
+    onBlockTimerChange: (Boolean) -> Unit,
+    onEmergencyUnlockChange: (Boolean) -> Unit,
+    onDarkModeChange: (Boolean) -> Unit,
+    onLiveActivityChange: (Boolean) -> Unit,
+    onNotificationsChange: (Boolean) -> Unit,
+    onLanguageChange: (String) -> Unit,
+    onProfileSave: (String, String, String?) -> Unit,
+    onLogout: () -> Unit,
+    onHelpCenter: () -> Unit
 ) {
     val context = LocalContext.current
     val orange = Color(0xFFFF6A1A)
     val bg = Color(0xFF1C1C1E)
 
-    var blockTimer by remember { mutableStateOf(PreferencesManager.getBlockTimerEnabled(context)) }
-    var emergencyUnlock by remember { mutableStateOf(PreferencesManager.getEmergencyUnlockEnabled(context)) }
-    var darkMode by remember { mutableStateOf(PreferencesManager.getDarkModeEnabled(context)) }
-    var liveActivity by remember { mutableStateOf(PreferencesManager.getLiveActivityEnabled(context)) }
-    var notifications by remember { mutableStateOf(PreferencesManager.getNotificationsEnabled(context)) }
-    var language by remember { mutableStateOf(PreferencesManager.getLanguage(context)) }
-
     var showEditProfile by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf(PreferencesManager.getProfileName(context)) }
-    var email by remember { mutableStateOf(PreferencesManager.getProfileEmail(context)) }
-    var profileImageUri by remember {
-        mutableStateOf(
-            PreferencesManager.getProfileImageUri(context)?.let { Uri.parse(it) }
-        )
-    }
-
     var showSuccess by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
@@ -108,6 +115,9 @@ fun ProfileScreen(
     var isSearching by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
+    val profileImageUri: Uri? = remember(state.profileImageUri) {
+        state.profileImageUri?.let { Uri.parse(it) }
+    }
 
     val blurRadius = if (showEditProfile || showLogoutDialog || showLanguageDialog) 20.dp else 0.dp
 
@@ -139,7 +149,6 @@ fun ProfileScreen(
                 .background(bg)
                 .blur(blurRadius)
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -255,7 +264,6 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(96.dp)
@@ -300,7 +308,7 @@ fun ProfileScreen(
                             .padding(horizontal = 18.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            text = name,
+                            text = state.name,
                             color = Color.White,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
@@ -310,20 +318,18 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = email,
+                        text = state.email,
                         color = Color(0xFFB0B0B0),
                         fontSize = 13.sp
                     )
                 }
 
-
                 Spacer(modifier = Modifier.height(28.dp))
 
-
+                // Settings list
                 var lastSection = ""
 
                 visibleSettings.forEach { (setting, section) ->
-
                     if (section != lastSection && section != "OTHER") {
                         Text(
                             text = section,
@@ -339,44 +345,32 @@ fun ProfileScreen(
                         "Block Timer" -> SettingToggleRow(
                             icon = { Icon(Icons.Outlined.Schedule, null, tint = Color.White) },
                             label = "Block Timer",
-                            checked = blockTimer,
-                            onCheckedChange = {
-                                blockTimer = it
-                                PreferencesManager.setBlockTimerEnabled(context, it)
-                            },
+                            checked = state.blockTimer,
+                            onCheckedChange = onBlockTimerChange,
                             orange = orange
                         )
 
                         "Emergency Unlock" -> SettingToggleRow(
                             icon = { Icon(Icons.Outlined.Warning, null, tint = Color.White) },
                             label = "Emergency Unlock",
-                            checked = emergencyUnlock,
-                            onCheckedChange = {
-                                emergencyUnlock = it
-                                PreferencesManager.setEmergencyUnlockEnabled(context, it)
-                            },
+                            checked = state.emergencyUnlock,
+                            onCheckedChange = onEmergencyUnlockChange,
                             orange = orange
                         )
 
                         "Dark Mode" -> SettingToggleRow(
                             icon = { Icon(Icons.Outlined.DarkMode, null, tint = Color.White) },
                             label = "Dark Mode",
-                            checked = darkMode,
-                            onCheckedChange = {
-                                darkMode = it
-                                PreferencesManager.setDarkModeEnabled(context, it)
-                            },
+                            checked = state.darkMode,
+                            onCheckedChange = onDarkModeChange,
                             orange = orange
                         )
 
                         "Live Activity" -> SettingToggleRow(
                             icon = { Icon(Icons.Outlined.Bolt, null, tint = Color.White) },
                             label = "Live Activity",
-                            checked = liveActivity,
-                            onCheckedChange = {
-                                liveActivity = it
-                                PreferencesManager.setLiveActivityEnabled(context, it)
-                            },
+                            checked = state.liveActivity,
+                            onCheckedChange = onLiveActivityChange,
                             orange = orange,
                             subText = "See your session status on your Lock Screen.\nSilent notifications need to be enabled on the lock screen."
                         )
@@ -407,11 +401,8 @@ fun ProfileScreen(
                         "Notifications" -> SettingToggleRow(
                             icon = { Icon(Icons.Outlined.Notifications, null, tint = Color.White) },
                             label = "Notifications",
-                            checked = notifications,
-                            onCheckedChange = {
-                                notifications = it
-                                PreferencesManager.setNotificationsEnabled(context, it)
-                            },
+                            checked = state.notifications,
+                            onCheckedChange = onNotificationsChange,
                             orange = orange
                         )
 
@@ -427,7 +418,7 @@ fun ProfileScreen(
                             label = "Language",
                             trailingContent = {
                                 Text(
-                                    text = language,
+                                    text = state.language,
                                     color = Color.White,
                                     fontSize = 14.sp,
                                     textDecoration = TextDecoration.Underline
@@ -488,24 +479,13 @@ fun ProfileScreen(
         if (showEditProfile) {
             EditProfileOverlay(
                 orange = orange,
-                currentName = name,
-                currentEmail = email,
+                currentName = state.name,
+                currentEmail = state.email,
+                currentImageUri = profileImageUri,
                 onSave = { newName, newEmail, newImageUri ->
-                    name = newName
-                    email = newEmail
-
-                    PreferencesManager.setProfileName(context, newName)
-                    PreferencesManager.setProfileEmail(context, newEmail)
-
-                    if (newImageUri != null) {
-                        PreferencesManager.setProfileImageUri(context, newImageUri.toString())
-                        profileImageUri = newImageUri
-                    }
-
+                    onProfileSave(newName, newEmail, newImageUri?.toString())
                     showSuccess = true
                 },
-
-
                 onDismiss = { showEditProfile = false }
             )
         }
@@ -526,16 +506,14 @@ fun ProfileScreen(
 
         if (showLanguageDialog) {
             LanguageSelectionDialog(
-                currentLanguage = language,
+                currentLanguage = state.language,
                 onSelect = { selected ->
-                    language = selected
-                    PreferencesManager.setLanguage(context, selected)
+                    onLanguageChange(selected)
                     showLanguageDialog = false
                 },
                 onDismiss = { showLanguageDialog = false }
             )
         }
-
     }
 }
 
@@ -654,6 +632,7 @@ private fun EditProfileOverlay(
     orange: Color,
     currentName: String,
     currentEmail: String,
+    currentImageUri: Uri?,
     onSave: (String, String, Uri?) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -664,9 +643,7 @@ private fun EditProfileOverlay(
     var password by remember { mutableStateOf("") }
 
     var profileImageUri by remember {
-        mutableStateOf(
-            PreferencesManager.getProfileImageUri(context)?.let { Uri.parse(it) }
-        )
+        mutableStateOf(currentImageUri)
     }
 
     val pickImageLauncher =
@@ -690,13 +667,11 @@ private fun EditProfileOverlay(
             .padding(top = 65.dp),
         contentAlignment = Alignment.Center
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(32.dp))
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -814,16 +789,6 @@ private fun EditProfileOverlay(
                         .clip(RoundedCornerShape(28.dp))
                         .background(orange)
                         .clickable {
-                            PreferencesManager.setProfileName(context, name)
-                            PreferencesManager.setProfileEmail(context, email)
-
-                            if (profileImageUri != null) {
-                                PreferencesManager.setProfileImageUri(
-                                    context,
-                                    profileImageUri.toString()
-                                )
-                            }
-
                             onSave(name, email, profileImageUri)
                             onDismiss()
                         },
@@ -842,6 +807,7 @@ private fun EditProfileOverlay(
         }
     }
 }
+
 
 
 
